@@ -49,3 +49,71 @@ public with sharing class AccountShippingCountryComparator implements Comparator
             : a1.ShippingCountry.compareTo(a2.ShippingCountry);
     }
 }
+
+// Unit tests
+@isTest
+public class AccountShippingCountryComparatorTest {
+    @isTest
+    static void testCompare_BothCountriesNull_ReturnsZero() {
+        AccountShippingCountryComparator comparator = new AccountShippingCountryComparator();
+        Account a1 = new Account();
+        Account a2 = new Account();
+        Integer result = comparator.compare(a1, a2);
+        System.assertEquals(0, result);
+    }
+
+    @isTest
+    static void testCompare_A1CountryNullAndSortOrderAscending_ReturnsNegativeOne() {
+        AccountShippingCountryComparator comparator = new AccountShippingCountryComparator('ascending');
+        Account a1 = new Account();
+        Account a2 = new Account(ShippingCountry = 'USA');
+        Integer result = comparator.compare(a1, a2);
+        System.assertEquals(-1, result);
+    }
+
+    @isTest
+    static void testCompare_A2CountryNullAndSortOrderAscending_ReturnsOne() {
+        AccountShippingCountryComparator comparator = new AccountShippingCountryComparator('ascending');
+        Account a1 = new Account(ShippingCountry = 'USA');
+        Account a2 = new Account();
+        Integer result = comparator.compare(a1, a2);
+        System.assertEquals(1, result);
+    }
+
+    @isTest
+    static void testCompare_SortOrderDescending_ReturnsCorrectComparison() {
+        AccountShippingCountryComparator comparator = new AccountShippingCountryComparator('descending');
+        Account a1 = new Account(ShippingCountry = 'Canada');
+        Account a2 = new Account(ShippingCountry = 'USA');
+        Integer result = comparator.compare(a1, a2);
+        System.assertEquals(1, result);
+    }
+
+    @isTest
+    static void testCompare_SortOrderAscending_ReturnsCorrectComparison() {
+        AccountShippingCountryComparator comparator = new AccountShippingCountryComparator('ascending');
+        Account a1 = new Account(ShippingCountry = 'USA');
+        Account a2 = new Account(ShippingCountry = 'Canada');
+        Integer result = comparator.compare(a1, a2);
+        System.assertEquals(-1, result);
+    }
+
+    @isTest
+    static void testCompare_A1CountryEqualA2Country_ReturnsZero() {
+        AccountShippingCountryComparator comparator = new AccountShippingCountryComparator('ascending');
+        Account a1 = new Account(ShippingCountry = 'USA');
+        Account a2 = new Account(ShippingCountry = 'USA');
+        Integer result = comparator.compare(a1, a2);
+        System.assertEquals(0, result);
+    }
+
+    @isTest
+    static void testConstructor_InvalidSortOrder_ThrowsException() {
+        try {
+            AccountShippingCountryComparator comparator = new AccountShippingCountryComparator('invalid');
+            System.assert(false, 'Expected exception not thrown');
+        } catch (AccountShippingCountryComparator.ASCComparatorException e) {
+            System.assertEquals('Invalid sort order provided', e.getMessage());
+        }
+    }
+}

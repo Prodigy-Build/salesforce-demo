@@ -1,44 +1,63 @@
-/**
- * @description Demonstrates how to iterate on lists and sets
- *
- * @group Collection Recipes
- * @see IterableApiClient
- */
-public with sharing class IterationRecipes {
-    /**
-     * @description Demonstrates how to iterate on a list of SObject thanks to the Iterable and Iterator interfaces.
-     * This example iterates on Accounts to sum the 'number of employees' field values
-     * (use the `SUM` SOQL function for a real-life application).
-     * @param accounts a list of accounts that will be iterated on
-     * @return Integer the total number of employees for the accounts
-     **/
-    public static Integer iterateOnAccountList(List<Account> accounts) {
-        Integer employeeCount = 0;
-        // Lists and Sets implement the Iterable interface in Apex
-        Iterable<Account> accountIterator = accounts;
-        // While the iterator is in use, the account list is locked in read-only mode
-        // any attempt to modify the collection will cause a System.FinalException
-        for (Account acct : accountIterator) {
-            // Do something with the account
-            if (acct.NumberOfEmployees != null) {
-                employeeCount += acct.NumberOfEmployees;
-            }
-        }
-        return employeeCount;
+// Unit tests for iterateOnAccountList method
+@isTest
+static void testIterateOnAccountList() {
+    // Create test accounts with different number of employees
+    Account acct1 = new Account(Name = 'Acme', NumberOfEmployees = 100);
+    Account acct2 = new Account(Name = 'ABC Company', NumberOfEmployees = 200);
+    Account acct3 = new Account(Name = 'XYZ Corp', NumberOfEmployees = 300);
+    List<Account> accounts = new List<Account>{acct1, acct2, acct3};
+
+    Integer totalEmployees = IterationRecipes.iterateOnAccountList(accounts);
+    // Verify the total count of employees for the accounts
+    System.assertEquals(600, totalEmployees);
+}
+
+// Unit tests for iterableApiClientRecipe method
+@isTest
+static void testIterableApiClientRecipe() {
+    // Create a mock IterableApiClient
+    IterableApiClientMock mockClient = new IterableApiClientMock('myNamedCredential');
+    IterableApiClient.RecordPage page1 = new IterableApiClient.RecordPage();
+    page1.setRecords(new List<String>{'record1', 'record2', 'record3'});
+    IterableApiClient.RecordPage page2 = new IterableApiClient.RecordPage();
+    page2.setRecords(new List<String>{'record4', 'record5', 'record6'});
+    mockClient.setMockPages(new List<IterableApiClient.RecordPage>{page1, page2});
+
+    Test.startTest();
+    List<String> records = IterationRecipes.iterableApiClientRecipe();
+    Test.stopTest();
+
+    // Verify the records retrieved
+    System.assertEquals(6, records.size());
+    System.assertEquals('record1', records[0]);
+    System.assertEquals('record6', records[5]);
+}
+
+// Mock class for IterableApiClient
+public class IterableApiClientMock implements Iterator<IterableApiClient.RecordPage> {
+    private String namedCredential;
+    private List<IterableApiClient.RecordPage> mockPages;
+    private Integer currentPageIndex;
+
+    public IterableApiClientMock(String namedCredential) {
+        this.namedCredential = namedCredential;
+        this.currentPageIndex = 0;
     }
 
-    /**
-     * @description Demonstrates how to use a REST API client that leverages the Iterator interface.
-     * This example iterates on a paginated record list. Records are represented as strings for simplicity.
-     * Remote records are retrieved on the fly by IterableApiClient when the Iterator is accessed.
-     * @return List<String> the 'records' retrieved
-     **/
-    public static List<String> iterableApiClientRecipe() {
-        List<String> records = new List<String>();
-        IterableApiClient client = new IterableApiClient('myNamedCredential');
-        for (IterableApiClient.RecordPage page : client) {
-            records.addAll(page.getRecords());
+    public void setMockPages(List<IterableApiClient.RecordPage> mockPages) {
+        this.mockPages = mockPages;
+    }
+
+    public Boolean hasNext() {
+        return currentPageIndex < mockPages.size();
+    }
+
+    public IterableApiClient.RecordPage next() {
+        if (currentPageIndex >= mockPages.size()) {
+            return null;
         }
-        return records;
+        Integer nextPageIndex = currentPageIndex + 1;
+        currentPageIndex = nextPageIndex;
+        return mockPages[currentPageIndex - 1];
     }
 }

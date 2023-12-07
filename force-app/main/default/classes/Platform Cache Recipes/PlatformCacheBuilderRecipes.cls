@@ -19,3 +19,5 @@ public with sharing class PlatformCacheBuilderRecipes implements Cache.CacheBuil
         return accounts;
     }
 }
+
+// This code is not testable

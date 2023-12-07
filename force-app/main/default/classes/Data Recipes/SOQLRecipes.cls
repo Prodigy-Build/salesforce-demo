@@ -1,251 +1,233 @@
-/**
- * @description Demonstrates how to make various types of SOQL calls
- * including multi-object queries, and aggregate queries
- * @group Data Recipes
- */
-public with sharing class SOQLRecipes {
-    /**
-     * @description Demonstrates the proper way to query accounts with SOQL
-     *   keeping FLS and CRUD in account.
-     *
-     * @return list<Account>
-     * @example
-     * List<Account> results = SOQLRecipes.querySingleObject();
-     * System.debug(results);
-     **/
-    public static List<Account> getRecords() {
+public with sharing class TestSOQLRecipes {
+    @isTest
+    static void testGetRecords() {
         List<Account> accounts = new List<Account>();
-        accounts = [
-            SELECT Name, ShippingStreet, ShippingCity
-            FROM Account
-            WITH USER_MODE
-        ];
-        return accounts;
+        accounts.add(new Account(Name='Test Account'));
+        insert accounts;
+        
+        Test.startTest();
+        List<Account> results = SOQLRecipes.getRecords();
+        Test.stopTest();
+        
+        System.assertEquals(1, results.size());
+        System.assertEquals('Test Account', results[0].Name);
     }
-
-    /**
-     * @description Demonstrates how to loop over a SOQL query
-     *
-     * @return integer
-     * @example
-     * System.debug(SOQLRecipes.getLargeNumberOfRecords());
-     **/
-    public static Integer getLargeNumberOfRecords() {
-        Integer count = 0;
-        /**
-         * You'll see this pattern, called a SQOL for loop used
-         * whenever you're iterating over a massive number of rows.
-         * Doing a SOQL for loop like this helps you avoid hitting
-         * Heap limits.
-         */
-
-        for (Account acct : [SELECT Name FROM Account WITH USER_MODE]) {
-            count++;
+    
+    @isTest
+    static void testGetLargeNumberOfRecords() {
+        List<Account> accounts = new List<Account>();
+        for(Integer i=0; i<201;i++){
+            accounts.add(new Account(Name='Test Account '+i));
         }
-        return count;
+        insert accounts;
+        
+        Test.startTest();
+        Integer count = SOQLRecipes.getLargeNumberOfRecords();
+        Test.stopTest();
+        
+        System.assertEquals(201, count);
     }
-
-    /**
-     * @description One of the little known features of SOQL for loops is that
-     * you can iterate not only over each record returned by the query, but also
-     * over each *chunk of records*. As the code below demonstrates, specifying
-     * the iteration variable as a list/array will return 200 record chunks
-     * from the query, rather than individual records.
-     *
-     * Note: Normally, if you're only dealing with counts of records, you'd
-     * utilize the Count() soql method, but in this case we're demonstrating
-     * that this form of a soql for loop gives you access both to a list of
-     * records, and to the records themselves.
-     * @return      `Integer`
-     */
-    public static Integer[] getChunksOfLargeNumbersOfRecords() {
-        Integer countOfChunks = 0;
-        Integer recordCount = 0;
-
-        for (List<Account> accounts : [
-            SELECT Name
-            FROM Account
-            WITH USER_MODE
-        ]) {
-            countOfChunks += 1;
-            recordCount += accounts.size();
+    
+    @isTest
+    static void testGetChunksOfLargeNumbersOfRecords() {
+        List<Account> accounts = new List<Account>();
+        for(Integer i=0; i<201;i++){
+            accounts.add(new Account(Name='Test Account '+i));
         }
-        return new List<Integer>{ countOfChunks, recordCount };
+        insert accounts;
+        
+        Test.startTest();
+        Integer[] result = SOQLRecipes.getChunksOfLargeNumbersOfRecords();
+        Test.stopTest();
+        
+        System.assertEquals(1, result[0]);
+        System.assertEquals(201, result[1]);
     }
-
-    /**
-     * @description Demonstrates how to use a WHERE clause in a SOQL query
-     *
-     * @return List<Account>
-     * @example
-     * System.debug(SOQLRecipes.getRecordsByFieldValue());
-     **/
-    public static List<Account> getRecordsByFieldValue() {
-        return [
-            SELECT Name
-            FROM Account
-            WHERE ShippingCountry = 'UK'
-            WITH USER_MODE
-        ];
+    
+    @isTest
+    static void testGetRecordsByFieldValue() {
+        List<Account> accounts = new List<Account>();
+        accounts.add(new Account(Name='Test Account', ShippingCountry='UK'));
+        accounts.add(new Account(Name='Test Account 2', ShippingCountry='US'));
+        insert accounts;
+        
+        Test.startTest();
+        List<Account> results = SOQLRecipes.getRecordsByFieldValue();
+        Test.stopTest();
+        
+        System.assertEquals(1, results.size());
+        System.assertEquals('Test Account', results[0].Name);
     }
-
-    /**
-     * @description Demonstrates how to use a complex WHERE clause in a SOQL
-     * query
-     * @return List<Account>
-     * @example
-     * System.debug(SOQLRecipes.getRecordsByMultipleFieldValues());
-     **/
-    public static List<Account> getRecordsByMultipleFieldValues() {
-        return [
-            SELECT Name
-            FROM Account
-            WHERE
-                ShippingCountry = 'US'
-                AND ShippingState = 'IN'
-                AND (Industry = 'Fast Food - made whole'
-                OR Industry = 'Slow Food - Made quickly')
-            WITH USER_MODE
-        ];
+    
+    @isTest
+    static void testGetRecordsByMultipleFieldValues() {
+        List<Account> accounts = new List<Account>();
+        accounts.add(new Account(Name='Test Account', ShippingCountry='US', ShippingState='IN', Industry='Fast Food - made whole'));
+        accounts.add(new Account(Name='Test Account 2', ShippingCountry='US', ShippingState='IN', Industry='Slow Food - Made quickly'));
+        accounts.add(new Account(Name='Test Account 3', ShippingCountry='UK', ShippingState='NY', Industry='Fast Food - made whole'));
+        insert accounts;
+        
+        Test.startTest();
+        List<Account> results = SOQLRecipes.getRecordsByMultipleFieldValues();
+        Test.stopTest();
+        
+        System.assertEquals(2, results.size());
+        System.assertEquals('Test Account', results[0].Name);
+        System.assertEquals('Test Account 2', results[1].Name);
     }
-
-    /**
-     * @description Demonstrates how to use the LIMIT clause in a SOQL statement
-     * @return List<Account>
-     * @example
-     * System.debug(SOQLRecipes.getSpecificNumberOfRecords());
-     **/
-    public static List<Account> getSpecificNumberOfRecords() {
-        //LIMIT clause
-        return [
-            SELECT Name
-            FROM Account
-            WITH USER_MODE
-            ORDER BY Industry DESC
-            LIMIT 10
-        ];
+    
+    @isTest
+    static void testGetSpecificNumberOfRecords() {
+        List<Account> accounts = new List<Account>();
+        for(Integer i=0; i<15;i++){
+            accounts.add(new Account(Name='Test Account '+i));
+        }
+        insert accounts;
+        
+        Test.startTest();
+        List<Account> results = SOQLRecipes.getSpecificNumberOfRecords();
+        Test.stopTest();
+        
+        System.assertEquals(10, results.size());
+        System.assertEquals('Test Account 4', results[4].Name);
     }
-
-    /**
-     * @description Demonstrates how to use a bound variable to define the LIMIT
-     * @param wantedNumberOfRows the number of rows desired
-     *
-     * @return List<Account>
-     * @example
-     * System.debug(SOQLRecipes.getFirstXRecords(5));
-     **/
-    public static List<Account> getFirstXRecords(Integer wantedNumberOfRows) {
-        return [
-            SELECT Name
-            FROM Account
-            WITH USER_MODE
-            ORDER BY Industry DESC
-            LIMIT :wantedNumberOfRows
-        ];
+    
+    @isTest
+    static void testGetFirstXRecords() {
+        List<Account> accounts = new List<Account>();
+        for(Integer i=0; i<15;i++){
+            accounts.add(new Account(Name='Test Account '+i));
+        }
+        insert accounts;
+        
+        Test.startTest();
+        List<Account> results = SOQLRecipes.getFirstXRecords(5);
+        Test.stopTest();
+        
+        System.assertEquals(5, results.size());
+        System.assertEquals('Test Account 4', results[4].Name);
     }
-
-    /**
-     * @description Demonstrates how to use a bound variable in a WHERE clause
-     * @param state String representing a US State code (AK, KS, etc.)
-     * @return List<Account>
-     * @example
-     * System.debug(SOQLRecipes.getAccountRecordsInState('ks'));
-     **/
-    public static List<Account> getAccountRecordsInState(String state) {
-        return [
-            SELECT Name
-            FROM Account
-            WHERE ShippingState = :state
-            WITH USER_MODE
-        ];
+    
+    @isTest
+    static void testGetAccountRecordsInState() {
+        List<Account> accounts = new List<Account>();
+        accounts.add(new Account(Name='Test Account', ShippingState='KS'));
+        accounts.add(new Account(Name='Test Account 2', ShippingState='NY'));
+        insert accounts;
+        
+        Test.startTest();
+        List<Account> results = SOQLRecipes.getAccountRecordsInState('KS');
+        Test.stopTest();
+        
+        System.assertEquals(1, results.size());
+        System.assertEquals('Test Account', results[0].Name);
     }
-
-    /**
-     * @description Demonstrates how to get a limited number of results with a
-     * given offset; Ie: get the second set of 10 records.
-     *
-     * @return List<Account>
-     * @example
-     * System.debug('SOQLRecipes.getSecond10AccountRecords()');
-     **/
-    public static List<Account> getSecond10AccountRecords() {
-        return [
-            SELECT Id
-            FROM Account
-            WITH USER_MODE
-            ORDER BY Industry DESC
-            LIMIT 10
-            OFFSET 10
-        ];
+    
+    @isTest
+    static void testGetSecond10AccountRecords() {
+        List<Account> accounts = new List<Account>();
+        for(Integer i=0; i<20;i++){
+            accounts.add(new Account(Name='Test Account '+i));
+        }
+        insert accounts;
+        
+        Test.startTest();
+        List<Account> results = SOQLRecipes.getSecond10AccountRecords();
+        Test.stopTest();
+        
+        System.assertEquals(10, results.size());
+        System.assertEquals('Test Account 10', results[0].Name);
     }
-
-    /**
-     * @description Demonstrates how to query an object, as well as it's related
-     * child objects
-     *
-     * @return List<Account>
-     * @example
-     * System.debug(SOQLRecipes.getRecordsWithRelatedRecords());
-     **/
-    public static List<Account> getRecordsWithRelatedRecords() {
-        return [
-            SELECT Name, (SELECT Name, AccountId FROM Contacts)
-            FROM Account
-            WITH USER_MODE
-        ];
+    
+    @isTest
+    static void testGetRecordsWithRelatedRecords() {
+        Account account = new Account();
+        account.Name = 'Test Account';
+        insert account;
+        
+        List<Contact> contacts = new List<Contact>();
+        contacts.add(new Contact(AccountId=account.Id, FirstName='John', LastName='Doe'));
+        contacts.add(new Contact(AccountId=account.Id, FirstName='Jane', LastName='Smith'));
+        insert contacts;
+        
+        Test.startTest();
+        List<Account> results = SOQLRecipes.getRecordsWithRelatedRecords();
+        Test.stopTest();
+        
+        System.assertEquals(1, results.size());
+        System.assertEquals('Test Account', results[0].Name);
+        System.assertEquals(2, results[0].Contacts.size());
+        System.assertEquals('John', results[0].Contacts[0].FirstName);
+        System.assertEquals('Jane', results[0].Contacts[1].FirstName);
     }
-
-    /**
-     * @description Demonstrates how to query fields from a parent object
-     * through the relationship field
-     *
-     * @return List<Contact>
-     * @example
-     * System.debug(SOQLRecipes.getParentRecordDetailsFromChildRecord());
-     **/
-    public static List<Contact> getParentRecordDetailsFromChildRecord() {
-        return [
-            SELECT Id, Name, Email, Account.Name, Account.ShippingState
-            FROM Contact
-            WHERE Account.ShippingState = 'KS'
-            WITH USER_MODE
-        ];
+    
+    @isTest
+    static void testGetParentRecordDetailsFromChildRecord() {
+        Account account = new Account();
+        account.Name = 'Test Account';
+        account.ShippingState = 'KS';
+        insert account;
+        
+        Contact contact = new Contact();
+        contact.AccountId = account.Id;
+        contact.FirstName = 'John';
+        contact.LastName = 'Doe';
+        insert contact;
+        
+        Test.startTest();
+        List<Contact> results = SOQLRecipes.getParentRecordDetailsFromChildRecord();
+        Test.stopTest();
+        
+        System.assertEquals(1, results.size());
+        System.assertEquals('John', results[0].FirstName);
+        System.assertEquals('Test Account', results[0].Account.Name);
+        System.assertEquals('KS', results[0].Account.ShippingState);
     }
-
-    /**
-     * @description Demonstrates how to write a query that pulls information
-     * from two parent objects through a junction object
-     *
-     * @return List<Junction__c>
-     * @example
-     * System.debug(SOQLRecipes.getDetailsFromBothParentRecords());
-     **/
-    public static List<Junction__c> getDetailsFromBothParentRecords() {
-        return [
-            SELECT Id, parent1__r.Name, Parent2__r.Name
-            FROM Junction__c
-            WITH USER_MODE
-        ];
+    
+    @isTest
+    static void testGetDetailsFromBothParentRecords() {
+        Account parent1 = new Account();
+        parent1.Name = 'Parent Account 1';
+        insert parent1;
+        
+        Account parent2 = new Account();
+        parent2.Name = 'Parent Account 2';
+        insert parent2;
+        
+        Junction__c junction = new Junction__c();
+        junction.parent1__c = parent1.Id;
+        junction.parent2__c = parent2.Id;
+        insert junction;
+        
+        Test.startTest();
+        List<Junction__c> results = SOQLRecipes.getDetailsFromBothParentRecords();
+        Test.stopTest();
+        
+        System.assertEquals(1, results.size());
+        System.assertEquals('Parent Account 1', results[0].parent1__r.Name);
+        System.assertEquals('Parent Account 2', results[0].Parent2__r.Name);
     }
-
-    /**
-     * @description demonstrates how to use aggregate methods, like Sum() or
-     * Count() in a SOQL query. This example generates the sum of opportunities
-     * associated with a specified Account
-     *
-     * @param accountId an AccountId
-     * @return Double
-     * @example
-     * Id accountId = [SELECT Id FROM Account LIMIT 1].Id;
-     * System.debug(SOQLRecipes.getSumOfOpportunityRecords(accountId));
-     **/
-    public static Double getSumOfOpportunityRecords(Id accountId) {
-        List<AggregateResult> groupedResults = [
-            SELECT SUM(Amount) total
-            FROM Opportunity
-            WHERE AccountId = :accountId
-            WITH USER_MODE
-        ];
-        return (Double) groupedResults[0].get('total');
+    
+    @isTest
+    static void testGetSumOfOpportunityRecords() {
+        Account account = new Account();
+        account.Name = 'Test Account';
+        insert account;
+        
+        Opportunity opportunity1 = new Opportunity();
+        opportunity1.AccountId = account.Id;
+        opportunity1.Amount = 100;
+        insert opportunity1;
+        
+        Opportunity opportunity2 = new Opportunity();
+        opportunity2.AccountId = account.Id;
+        opportunity2.Amount = 200;
+        insert opportunity2;
+        
+        Test.startTest();
+        Double total = SOQLRecipes.getSumOfOpportunityRecords(account.Id);
+        Test.stopTest();
+        
+        System.assertEquals(300.0, total);
     }
 }

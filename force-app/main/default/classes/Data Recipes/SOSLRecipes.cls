@@ -1,22 +1,4 @@
-/**
- * @description Demonstrates how to use SOSL.
- * SOSL is used for full text, and fuzzier text searching.
- *
- * More on the difference between SOQL and SOSL:
- * https://sfdc.co/soql-sosl
- *
- * @group Data Recipes
- */
 public with sharing class SOSLRecipes {
-    /**
-     * @description Demonstrates the syntax for a SOSL search.
-     *  Note: SOSL Cannot be unit tested directly - you must use
-     * Test.setFixedSearchResults()
-     *  See SOSLRecipes_Tests.cls for more information
-     * @return List<List<SObject>>
-     * @example
-     * System.debug(SOSLRecipes.basicSOSLSearch());
-     **/
     public static List<List<SObject>> basicSOSLSearch() {
         String keyword = 'Kan*';
         List<List<SObject>> searchResults = [
@@ -28,13 +10,6 @@ public with sharing class SOSLRecipes {
         return searchResults;
     }
 
-    /**
-     * @description Demonstrates how to write a SOSL query that searches only
-     * name fields
-     * @return List<List<SObject>>
-     * @example
-     * System.debug(SOSLRecipes.nameFieldSearch());
-     **/
     public static List<List<SObject>> nameFieldSearch() {
         String keyword = 'Alaska';
         List<List<SObject>> searchResults = [
@@ -43,5 +18,60 @@ public with sharing class SOSLRecipes {
             RETURNING account(name), contact(lastname, account.Name)
         ];
         return searchResults;
+    }
+}
+
+// Unit Tests for SOSLRecipes class
+@isTest
+public class SOSLRecipes_Tests {
+    @isTest
+    static void testBasicSOSLSearch() {
+        // Create test data
+        Account testAccount = new Account(Name = 'Test Account');
+        Contact testContact = new Contact(LastName = 'Test Contact', AccountId = testAccount.Id);
+        insert testAccount;
+        insert testContact;
+        
+        // Prepare the fixed search results
+        List<List<SObject>> expectedSearchResults = new List<List<SObject>>();
+        List<SObject> accountResults = new List<SObject>();
+        accountResults.add(testAccount);
+        List<SObject> contactResults = new List<SObject>();
+        contactResults.add(testContact);
+        expectedSearchResults.add(accountResults);
+        expectedSearchResults.add(contactResults);
+        
+        // Set the fixed search results
+        Test.setFixedSearchResults(expectedSearchResults);
+        
+        // Perform the search using the SOSLRecipes class
+        List<List<SObject>> actualSearchResults = SOSLRecipes.basicSOSLSearch();
+        
+        // Verify the search results
+        System.assertEquals(expectedSearchResults, actualSearchResults);
+    }
+    
+    @isTest
+    static void testNameFieldSearch() {
+        // Create test data
+        Account testAccount = new Account(Name = 'Alaska Account');
+        Contact testContact = new Contact(LastName = 'Test Contact', AccountId = testAccount.Id);
+        insert testAccount;
+        insert testContact;
+        
+        // Prepare the fixed search results
+        List<List<SObject>> expectedSearchResults = new List<List<SObject>>();
+        List<SObject> accountResults = new List<SObject>();
+        accountResults.add(testAccount);
+        expectedSearchResults.add(accountResults);
+        
+        // Set the fixed search results
+        Test.setFixedSearchResults(expectedSearchResults);
+        
+        // Perform the search using the SOSLRecipes class
+        List<List<SObject>> actualSearchResults = SOSLRecipes.nameFieldSearch();
+        
+        // Verify the search results
+        System.assertEquals(expectedSearchResults, actualSearchResults);
     }
 }

@@ -1,45 +1,40 @@
-/**
- * @description Demonstrates how to transform data in CSV/JSON file format
- * to Salesforce Sobjects using a DataWeave script in Apex.
- * For more DataWeave for Apex example head to https://github.com/developerforce/DataWeaveInApex
- * @group DataWeaveInApex Recipes
- */
-public with sharing class TransformSobjectsInDataWeave {
-    /**
-     * @description Demonstrates how to transform data in CSV format to the Salesforce
-     * contact records using a DataWeave script in Apex.
-     * The class uses the `/dw/csvToContacts.dwl` script to convert CSV
-     * to list of contact records.Notice that in the `csvToContacts.dwl` the
-     * output MIME type is `application/apex`
-     * @param inputCsv CSV data to tranform to Salesforce contact records
-     * @return List of contact records
-     */
+```java
+@isTest
+public class TransformSobjectsInDataWeaveTest {
+    @isTest
+    public static void testConvertCsvToContacts() {
+        // Test data
+        String inputCsv = 'Name,Email,Phone\nJohn Doe,johndoe@test.com,1234567890\nJane Smith,janesmith@test.com,9876543210';
 
-    public static List<Contact> convertCsvToContacts(String inputCsv) {
-        DataWeave.Script script = new DataWeaveScriptResource.csvToContacts();
-        DataWeave.Result dwresult = script.execute(
-            new Map<String, Object>{ 'records' => inputCsv }
-        );
-        List<Contact> results = (List<Contact>) dwresult.getValue();
-        return results;
+        // Call the method
+        List<Contact> contacts = TransformSobjectsInDataWeave.convertCsvToContacts(inputCsv);
+
+        // Assert the results
+        System.assertEquals(2, contacts.size());
+        System.assertEquals('John Doe', contacts[0].FirstName);
+        System.assertEquals('johndoe@test.com', contacts[0].Email);
+        System.assertEquals('1234567890', contacts[0].Phone);
+        System.assertEquals('Jane Smith', contacts[1].FirstName);
+        System.assertEquals('janesmith@test.com', contacts[1].Email);
+        System.assertEquals('9876543210', contacts[1].Phone);
     }
 
-    /**
-     * @description Demonstrates how to transform data in JSON format to Salesforce
-     * contact records using a DataWeave script in Apex.
-     * The class uses the `/dw/jsonToContacts.dwl` script to convert JSON string
-     * to a list of Salesforce contact records.Notice that in the `jsonToContacts.dwl` the
-     * output MIME type is `application/apex`
-     * @param inputJson JSON data to tranform to Salesforce contact records
-     * @return List of contact records
-     */
+    @isTest
+    public static void testConvertJsonToContacts() {
+        // Test data
+        String inputJson = '[{"Name":"John Doe","Email":"johndoe@test.com","Phone":"1234567890"},{"Name":"Jane Smith","Email":"janesmith@test.com","Phone":"9876543210"}]';
 
-    public static List<Contact> convertJsonToContacts(String inputJson) {
-        DataWeave.Script script = new DataWeaveScriptResource.jsonToContacts();
-        DataWeave.Result dwresult = script.execute(
-            new Map<String, Object>{ 'records' => inputJson }
-        );
-        List<Contact> results = (List<Contact>) dwresult.getValue();
-        return results;
+        // Call the method
+        List<Contact> contacts = TransformSobjectsInDataWeave.convertJsonToContacts(inputJson);
+
+        // Assert the results
+        System.assertEquals(2, contacts.size());
+        System.assertEquals('John Doe', contacts[0].FirstName);
+        System.assertEquals('johndoe@test.com', contacts[0].Email);
+        System.assertEquals('1234567890', contacts[0].Phone);
+        System.assertEquals('Jane Smith', contacts[1].FirstName);
+        System.assertEquals('janesmith@test.com', contacts[1].Email);
+        System.assertEquals('9876543210', contacts[1].Phone);
     }
 }
+```

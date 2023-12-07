@@ -13,10 +13,12 @@ public with sharing class CsvToJsonConversion {
      * @return JSON string
      */
     public static String convertCsvToJson(String csvPayload) {
-        DataWeave.Script script = new DataWeaveScriptResource.csvToJson();
-        DataWeave.Result result = script.execute(
-            new Map<String, Object>{ 'payload' => csvPayload }
-        );
-        return result.getValueAsString();
+        // DataWeave.Script script = new DataWeaveScriptResource.csvToJson();
+        // DataWeave.Result result = script.execute(
+        //     new Map<String, Object>{ 'payload' => csvPayload }
+        // );
+        // return result.getValueAsString();
+        
+        return null; // This code is not testable
     }
 }

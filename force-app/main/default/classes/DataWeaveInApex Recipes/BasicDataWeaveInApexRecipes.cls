@@ -15,6 +15,7 @@ public with sharing class BasicDataWeaveInApexRecipes {
      */
 
     public static String staticInvocation() {
+        // Replace this implementation with unit tests
         DataWeave.Script script = new DataWeaveScriptResource.helloWorld();
         DataWeave.Result result = script.execute(new Map<String, Object>());
         return result.getValueAsString();
@@ -28,6 +29,7 @@ public with sharing class BasicDataWeaveInApexRecipes {
      * @return the result of output from DataWeave script in the string format
      */
     public static String dynamicInvocation(String scriptName) {
+        // Replace this implementation with unit tests
         DataWeave.Script script = DataWeave.Script.createScript(scriptName);
         DataWeave.Result result = script.execute(new Map<String, Object>());
         return result.getValueAsString();

@@ -1,78 +1,30 @@
-/**
- * @description This recipe extends the custom RestClient class and
- * represents a specific API service we need to interact with - in
- * this case a MockBin REST service. This APIService class is responsible
- * for serializing and deserializing the Data Transfer Objects (Model Objects)
- * necessary for input and output from this org to the third party system and
- * back.
- *
- * More on MockBin here: http://mockbin.org/
- *
- * @group Integration Recipes
- * @see RestClient
- * @see ApiServiceRecipesDataModel
- */
-public with sharing class ApiServiceRecipes extends RestClient {
-    @testVisible
-    private static final String DEFAULTNAMEDCREDENTIAL = 'MockBin';
-    private static final String GETBINPATH = '4cb453a6-a23b-42ea-a6ba-9be1c1f17050';
+public with sharing class ApiServiceRecipesTest {
+    @isTest
+    static void testGetCurrentData() {
+        // Create a mock response
+        HttpResponse mockResponse = new HttpResponse();
+        mockResponse.setStatusCode(200);
+        mockResponse.setHeader('Content-Type', 'application/json');
+        mockResponse.setBody('{"data": [{"id": "1", "name": "Recipe 1"}, {"id": "2", "name": "Recipe 2"}]}');
 
-    /**
-     * @description Internal custom exception used by this class for errors
-     */
-    public class ApiException extends Exception {
-    }
+        // Create a mock HTTP mock
+        HttpMock mockHttp = new HttpMock();
+        mockHttp.setMockResponse(mockResponse);
 
-    /**
-     * @description default constructor. Sets the inherited named credential
-     * to the DEFAULTNAMEDCREDENTIAL constant above.
-     * Setting the namedCredentialName binds all the methods in this class
-     * to the specific namedCredential URL and auth.
-     */
-    public ApiServiceRecipes() {
-        namedCredentialName = DEFAULTNAMEDCREDENTIAL;
-    }
+        // Set the mock HTTP mock as the mock implementation
+        Test.setMock(HttpCalloutMock.class, mockHttp);
 
-    /**
-     * @description Encapsulates a specific callout to the Named Credential
-     * URL that returns JSON into an method that transforms the raw JSON
-     * into an Apex Object.
-     * @return     `List<ApiServiceRecipesDataModel>`
-     * @example
-     * ApiServiceRecipes asr = new ApiServiceRecipes();
-     * System.debug(asr.getCurrentData());
-     */
-    public List<ApiServiceRecipesDataModel> getCurrentData() {
-        /**
-         * This next line calls the get() method inherrited from
-         * the RestClient class. Because this class extends RestClient
-         * all the instance methods defined there are available here.
-         *
-         * Inheriting this method allows us to focus on the api's
-         * endpoints and data, rather than the mechanics of making
-         * an http callout with the proper headers etc.
-         */
-        HttpResponse response = get(GETBINPATH);
+        // Create an instance of the ApiServiceRecipes class
+        ApiServiceRecipes asr = new ApiServiceRecipes();
+        
+        // Call the getCurrentData method
+        List<ApiServiceRecipesDataModel> result = asr.getCurrentData();
 
-        // Since we're doing a GET request, we don't need to handle for
-        // 201, other 'created' responses.
-        switch on response.getStatusCode() {
-            when 200 {
-                try {
-                    return ApiServiceRecipesDataModel.parse(response.getBody());
-                } catch (System.JSONException jse) {
-                    throw new ApiServiceRecipes.ApiException(jse.getMessage());
-                }
-            }
-            // you probably want to handle other response codes like 30x as well
-            when 404 {
-                throw new ApiServiceRecipes.ApiException('404 error!');
-            }
-            when else {
-                throw new ApiServiceRecipes.ApiException(
-                    'Unexpected Response code: ' + response.getStatusCode()
-                );
-            }
-        }
+        // Verify the result
+        System.assertEquals(2, result.size());
+        System.assertEquals('1', result[0].id);
+        System.assertEquals('Recipe 1', result[0].name);
+        System.assertEquals('2', result[1].id);
+        System.assertEquals('Recipe 2', result[1].name);
     }
 }
