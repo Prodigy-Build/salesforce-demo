@@ -1,5 +1,50 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>59.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
+@isTest
+private class PSGTestingRecipes {
+    @isTest
+    static void testRecalculatePSG() {
+        // Create test Permission Set Group
+        PermissionSetGroup psg = new PermissionSetGroup(
+            DeveloperName = 'Permission_Set_Group_for_testing'
+        );
+        insert psg;
+
+        // Create test Permission Set
+        PermissionSet ps = new PermissionSet(
+            Name = 'Read_access_to_Account_Shipping_Address'
+        );
+        insert ps;
+
+        // Add the Permission Set to the Permission Set Group
+        insert new PermissionSetGroupComponent(
+            PermissionSetGroupId = psg.Id,
+            PermissionSetId = ps.Id
+        );
+
+        // Recalculate the Permission Set Group
+        Test.calculatePermissionSetGroup(psg.Id);
+
+        // Create test User
+        User testUser = TestFactory.createMinAccessUser(true);
+        insert testUser;
+
+        // Assign PSG to test User
+        insert new PermissionSetAssignment(
+            PermissionSetGroupId = psg.Id,
+            AssigneeId = testUser.Id
+        );
+
+        System.runAs(testUser) {
+            // Assert that the test User can read accounts
+            System.Assert.isTrue(
+                CanTheUser.read(new Account()),
+                'Expected to be able to read accounts'
+            );
+
+            // Assert that the test User has access to the ShippingStreet field of the Account object
+            System.Assert.isTrue(
+                CanTheUser.flsAccessible('Account', 'ShippingStreet'),
+                'Expected a min-access profile with the Sales Persona PSG to have access to shippingStreet field'
+            );
+        }
+    }
+}

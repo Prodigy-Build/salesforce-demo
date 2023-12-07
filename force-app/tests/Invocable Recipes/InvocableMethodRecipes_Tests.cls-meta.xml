@@ -1,5 +1,43 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-  <apiVersion>59.0</apiVersion>
-  <status>Active</status>
-</ApexClass>
+@isTest
+private class LDVRecipes_Tests {
+    @isTest
+    static void testLDVRecipesQueueable() {
+        // Create test data
+        StaticResource testData = new StaticResource(
+            Name = 'helloworld',
+            Body = 'Test data'
+        );
+        insert testData;
+        
+        // Create accounts
+        List<Account> accounts = new List<Account>();
+        for (Integer i = 0; i < 20; i++) {
+            accounts.add(new Account());
+        }
+        insert accounts;
+        
+        // Create files attached to accounts
+        List<ContentDocumentLink> fileAttachments = new List<ContentDocumentLink>();
+        for (Account account : accounts) {
+            fileAttachments.add(new ContentDocumentLink(
+                ContentDocumentId = testData.Id,
+                LinkedEntityId = account.Id,
+                ShareType = 'I'
+            ));
+        }
+        insert fileAttachments;
+
+        // Test enqueueing the queueable job
+        Test.startTest();
+        LDVRecipes ldvr = new LDVRecipes();
+        System.enqueueJob(ldvr);
+        Test.stopTest();
+
+        // Assert the expected behavior
+        System.Assert.assertEquals(
+            1,
+            LDVRecipes.chunksExecuted,
+            'Expected to find the queueable executed once.'
+        );
+    }
+}

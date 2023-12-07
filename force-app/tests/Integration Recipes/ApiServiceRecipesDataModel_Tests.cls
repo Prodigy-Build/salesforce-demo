@@ -45,7 +45,9 @@ public class ApiServiceRecipesDataModel_Tests {
         '    \"c\": \"d\"' +
         '  },' +
         '  \"exampleString\": \"Hello World\"}]';
-    static testMethod void testParse() {
+        
+    @isTest
+    static void testParse() {
         List<ApiServiceRecipesDataModel> obj = ApiServiceRecipesDataModel.parse(
             ApiServiceRecipesDataModel_Tests.testJSON
         );

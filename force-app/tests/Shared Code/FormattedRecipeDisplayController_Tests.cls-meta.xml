@@ -1,5 +1,43 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>59.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
+@isTest
+public class HttpCalloutMockFactoryTest {
+    @isTest
+    static void testRespondMethod() {
+        // Create a mock response
+        HttpResponse mockResponse = new HttpResponse();
+        mockResponse.setStatusCode(200);
+        mockResponse.setStatus('OK');
+        mockResponse.setBody('Success');
+        Map<String, String> headers = new Map<String, String>();
+        headers.put('Content-Type', 'application/json');
+        mockResponse.setHeaders(headers);
+        
+        // Create an instance of HttpCalloutMockFactory
+        HttpCalloutMockFactory mockFactory = new HttpCalloutMockFactory(mockResponse);
+        
+        // Create a mock request
+        HttpRequest mockRequest = new HttpRequest();
+        mockRequest.setEndpoint('https://example.com');
+        mockRequest.setMethod('GET');
+        
+        // Call the respond method and assert the response
+        HttpResponse response = mockFactory.respond(mockRequest);
+        System.assertEquals(200, response.getStatusCode());
+        System.assertEquals('OK', response.getStatus());
+        System.assertEquals('Success', response.getBody());
+        System.assertEquals('application/json', response.getHeader('Content-Type'));
+    }
+    
+    @isTest
+    static void testGenerateHttpResponseMethod() {
+        // Create headers map
+        Map<String, String> headers = new Map<String, String>();
+        headers.put('Content-Type', 'application/xml');
+        
+        // Call the generateHttpResponse method and assert the response
+        HttpResponse response = HttpCalloutMockFactory.generateHttpResponse(400, 'Bad Request', 'Error', headers);
+        System.assertEquals(400, response.getStatusCode());
+        System.assertEquals('Bad Request', response.getStatus());
+        System.assertEquals('Error', response.getBody());
+        System.assertEquals('application/xml', response.getHeader('Content-Type'));
+    }
+}

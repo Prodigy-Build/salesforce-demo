@@ -2,4 +2,14 @@
 <ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>59.0</apiVersion>
     <status>Active</status>
+    <testMethods>
+        <fullName>FilesRecipes_Tests.testMethod1</fullName>
+        <isParallel>false</isParallel>
+        <testMethod>True</testMethod>
+    </testMethods>
+    <testMethods>
+        <fullName>FilesRecipes_Tests.testMethod2</fullName>
+        <isParallel>false</isParallel>
+        <testMethod>True</testMethod>
+    </testMethods>
 </ApexClass>

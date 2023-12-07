@@ -1,5 +1,42 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-  <apiVersion>59.0</apiVersion>
-  <status>Active</status>
-</ApexClass>
+@isTest
+private class MetadataTriggerService_Tests {
+    
+    @isTest
+    static void testGetMetadataTriggers() {
+        MetadataTriggerService mts = new MetadataTriggerService(
+            'Invalid_Object__c'
+        );
+        Test.startTest();
+        List<Metadata_Driven_Trigger__mdt> triggers = mts.getMetadataTriggers();
+        Test.stopTest();
+
+        System.assertEquals(
+            0,
+            triggers.size(),
+            'Expected to find no metadata records'
+        );
+    }
+
+    @isTest
+    static void testGetSObjectTypeNegative() {
+        Boolean didCatchProperException = false;
+        Test.startTest();
+        try {
+            MetadataTriggerService.getSObjectType();
+        } catch (MetadataTriggerService.MetadataTriggerServiceException triggerEx) {
+            if (
+                triggerEx.getMessage()
+                    .containsIgnoreCase(
+                        'trigger.new && trigger.old are both null'
+                    )
+            ) {
+                didCatchProperException = true;
+            }
+        }
+        Test.stopTest();
+        System.assertTrue(
+            didCatchProperException,
+            'executing this method in a unit test should result in an exception'
+        );
+    }
+}

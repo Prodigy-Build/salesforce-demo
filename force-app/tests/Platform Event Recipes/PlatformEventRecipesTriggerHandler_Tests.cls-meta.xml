@@ -1,5 +1,70 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>59.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
+@isTest
+private class PlatformEventRecipes_Tests {
+    @isTest
+    static void testEventPublishPositive() {
+        Account acct = new Account(name = 'testEvent');
+        insert acct;
+        
+        Event_Recipes_Demo__e event = new Event_Recipes_Demo__e(
+            Url__c = 'https://google.com',
+            Title__c = 'demo.jpg',
+            AccountId__c = acct.Id
+        );
+        
+        Test.startTest();
+        Database.SaveResult publishResult = PlatformEventRecipes.publishEvent(event);
+        Test.stopTest();
+
+        System.assertEquals(true, publishResult.isSuccess(), 'Expected the publish event to succeed');
+    }
+
+    @isTest
+    static void testEventPublishNegativeInvalidFields() {
+        Event_Recipes_Demo__e event = new Event_Recipes_Demo__e(
+            Url__c = 'https://google.com',
+            Title__c = 'demo.jpg'
+        );
+
+        Test.startTest();
+        Database.SaveResult publishResult = PlatformEventRecipes.publishEvent(event);
+        Test.stopTest();
+
+        System.assertEquals(false, publishResult.isSuccess(), 'Expected the publish event to fail');
+    }
+
+    @isTest
+    static void testEventPublishNegativeMinAccessUser() {
+        Event_Recipes_Demo__e event = new Event_Recipes_Demo__e(
+            Url__c = 'https://google.com',
+            Title__c = 'demo.jpg'
+        );
+        Boolean didCatchCorrectException = false;
+        User testUser = new User(
+            FirstName = 'Test',
+            LastName = 'User',
+            Email = 'testuser@test.com',
+            Username = 'testuser@test.com',
+            Alias = 'TUser',
+            CommunityNickname = 'TUser',
+            ProfileId = [SELECT Id FROM Profile WHERE Name = 'Standard User'].Id,
+            EmailEncodingKey = 'UTF-8',
+            LanguageLocaleKey = 'en_US',
+            TimeZoneSidKey = 'America/Los_Angeles'
+        );
+        insert testUser;
+
+        Test.startTest();
+        System.runAs(testUser) {
+            try {
+                PlatformEventRecipes.publishEvent(event);
+            } catch (PlatformEventRecipes.PlatformEventRecipesException pere) {
+                if (pere.getMessage().containsIgnoreCase('User has no permission to publish event')) {
+                    didCatchCorrectException = true;
+                }
+            }
+        }
+        Test.stopTest();
+
+        System.assertEquals(true, didCatchCorrectException, 'Expected to have received a PlatformEventRecipesException when a min-access user tries to publish an event');
+    }
+}

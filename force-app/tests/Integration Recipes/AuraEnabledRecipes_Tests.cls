@@ -1,10 +1,9 @@
 @isTest
-private inherited sharing class AuraEnabledRecipes_Tests {
+private class AuraEnabledRecipes_Tests {
     @isTest
     static void testUpdateAccountNamePositive() {
-        Account acct = (Account) TestFactory.createSObject(
-            new Account(name = 'Original Name'),
-            true
+        Account acct = (Account) TestUtils.createSObject(
+            new Account(Name = 'Original Name')
         );
 
         Test.startTest();
@@ -12,50 +11,37 @@ private inherited sharing class AuraEnabledRecipes_Tests {
         Test.stopTest();
 
         Account updatedAcct = [SELECT Name FROM Account WHERE Id = :acct.Id];
-        System.Assert.areEqual(
-            'New Name',
-            updatedAcct.Name,
-            'Expected the account name to be updated.'
-        );
+        System.assertEquals('New Name', updatedAcct.Name);
     }
 
     @isTest
     static void testUpdateAccountNameNegativeInvalidName() {
-        Account acct = (Account) TestFactory.createSObject(
-            new Account(name = 'Original'),
-            true
+        Account acct = (Account) TestUtils.createSObject(
+            new Account(Name = 'Original')
         );
         Test.startTest();
         try {
             AuraEnabledRecipes.updateAccountName(acct.Id, '');
-            System.Assert.fail('Expected AuraHandledException');
-        } catch (System.AuraHandledException ahe) {
-            System.Assert.isTrue(
-                ahe.getMessage().containsIgnoreCase('Script-thrown exception')
-            );
+            System.assertFail('Expected AuraHandledException');
+        } catch (AuraHandledException ahe) {
+            System.assert(ahe.getMessage().containsIgnoreCase('Script-thrown exception'));
         }
         Test.stopTest();
     }
 
     @isTest
     static void testUpdateAccountNameNegativeMinAccessProfile() {
-        Account acct = (Account) TestFactory.createSObject(
-            new Account(name = 'Original Name'),
-            true
+        Account acct = (Account) TestUtils.createSObject(
+            new Account(Name = 'Original Name')
         );
-        User u = TestFactory.createMinAccessUser(true);
+        User u = TestUtils.createMinAccessUser();
         Test.startTest();
         System.runAs(u) {
             try {
                 AuraEnabledRecipes.updateAccountName(acct.Id, 'newValue');
-                System.Assert.fail('Expected AuraHandledException');
-            } catch (System.QueryException qe) {
-                System.Assert.isTrue(
-                    qe.getMessage()
-                        .containsIgnoreCase(
-                            'sObject type \'account\' is not supported'
-                        )
-                );
+                System.assertFail('Expected AuraHandledException');
+            } catch (QueryException qe) {
+                System.assert(qe.getMessage().containsIgnoreCase('sObject type \'account\' is not supported'));
             }
         }
         Test.stopTest();
@@ -64,10 +50,7 @@ private inherited sharing class AuraEnabledRecipes_Tests {
     @isTest
     static void testGetFieldValue() {
         Test.startTest();
-        System.Assert.isTrue(
-            AuraEnabledRecipes.getFieldValue().equalsIgnoreCase('hello world'),
-            'Expected to receive hello world'
-        );
+        System.assert(AuraEnabledRecipes.getFieldValue().equalsIgnoreCase('hello world'));
         Test.stopTest();
     }
 }

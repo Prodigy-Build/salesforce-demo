@@ -1,5 +1,41 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>59.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
+@isTest
+private class RecipeTreeViewController_Tests {
+    @isTest
+    static void testGenerateTreeDataPositive() {
+        // Create a fake ApexClass record for RecipeTreeViewController
+        ApexClass recipeTreeViewController = new ApexClass(Name = 'RecipeTreeViewController');
+        insert recipeTreeViewController;
+        
+        // Create a fake ApexClass record for SOQLRecipes
+        ApexClass soqlRecipes = new ApexClass(Name = 'SOQLRecipes');
+        insert soqlRecipes;
+        
+        Test.startTest();
+        List<RecipeTreeViewController.RecipeTreeData> tree = RecipeTreeViewController.generateTreeData();
+        Test.stopTest();
+
+        System.assertEquals(
+            2,
+            tree.size(),
+            'Expected to find two sub trees'
+        );
+        System.assertEquals(
+            'Recipes',
+            tree[0].name,
+            'Expected Recipes to be the first element'
+        );
+        System.assertEquals(
+            'Shared Code',
+            tree[1].name,
+            'Expected the final element to be Shared code'
+        );
+        System.assertTrue(
+            tree[0].items.size() > 0,
+            'expected for recipes to have sub-groups'
+        );
+        System.assertTrue(
+            tree[1].items.size() > 0,
+            'expected for shared code to have sub-groups'
+        );
+    }
+}

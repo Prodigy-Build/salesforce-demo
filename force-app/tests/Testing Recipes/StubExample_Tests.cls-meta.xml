@@ -1,5 +1,73 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>59.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
+@isTest
+private class StubbingRecipes_Tests {
+    @isTest
+    static void stubShouldReturnTruePositive() {
+        Test.startTest();
+        StubExample stub = (StubExample) Test.createStub(StubExample.class, new StubExampleImpl());
+        StubExampleConsumer consumer = new StubExampleConsumer(stub);
+        Boolean isTrue = consumer.getIsTrue();
+        Test.stopTest();
+
+        System.assertEquals(true, isTrue, 'Calling getIsTrue on our consumer object with a stub should return true');
+    }
+
+    @isTest
+    static void stubShouldReturnNonDefaultGreetingPositive() {
+        Test.startTest();
+        StubExample stub = (StubExample) Test.createStub(StubExample.class, new StubExampleImpl());
+        ((StubExampleImpl) stub).setGreeting('Hola');
+        StubExampleConsumer consumer = new StubExampleConsumer(stub);
+        String greeting = consumer.getGreeting();
+        Test.stopTest();
+
+        System.assertEquals('Hola', greeting, 'Calling getGreeting on our consumer with a stubbed object should return the stubs value');
+    }
+
+    @isTest
+    static void testStubbedMethodWithParametersPositive() {
+        Test.startTest();
+        StubExample stub = (StubExample) Test.createStub(StubExample.class, new StubExampleImpl());
+        StubExampleConsumer consumer = new StubExampleConsumer(stub);
+        consumer.setGreeting('greeting');
+        String greeting = consumer.getGreeting();
+        Test.stopTest();
+
+        System.assertEquals(1, consumer.setGreetingCallCount, 'expected setGreeting to have been called once');
+        System.assertEquals('greetings', greeting, 'Calling getGreeting on our consumer with a stubbed object should return the stubs value');
+    }
+
+    @isTest
+    static void testStubbedOverloadedMethodsPositive() {
+        Test.startTest();
+        StubExample stub = (StubExample) Test.createStub(StubExample.class, new StubExampleImpl());
+        StubExampleConsumer consumer = new StubExampleConsumer(stub);
+        consumer.setGreeting('greeting');
+        consumer.setGreeting(3);
+        Test.stopTest();
+
+        System.assertEquals(1, consumer.setGreetingStringCallCount, 'expected setGreeting(string) to have been called once');
+        System.assertEquals(1, consumer.setGreetingIntegerCallCount, 'expected setGreeting(int) to have been called once');
+    }
+
+    @isTest
+    static void testThrowingPositive() {
+        Test.startTest();
+        StubExample stub = (StubExample) Test.createStub(StubExample.class, new StubExampleImpl());
+        ((StubExampleImpl) stub).setThrowing('Expected Error');
+        StubExampleConsumer consumer = new StubExampleConsumer(stub);
+
+        Boolean didCatchTheRightException = false;
+
+        try {
+            consumer.getGreeting();
+        } catch (Test.Double.Exception testDoubleException) {
+            if (testDoubleException.getMessage().equalsIgnoreCase('Expected Error')) {
+                didCatchTheRightException = true;
+            }
+        }
+
+        Test.stopTest();
+
+        System.assertEquals(true, didCatchTheRightException, 'expected to have caught a TestDoubleException');
+    }
+}

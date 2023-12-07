@@ -1,5 +1,227 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-  <apiVersion>59.0</apiVersion>
-  <status>Active</status>
-</ApexClass>
+@isTest
+public class TestFactoryTest {
+    @isTest
+    public static void testCreateSObject() {
+        Account acc = new Account(Name = 'Test Account');
+        SObject sObj = TestFactory.createSObject(acc);
+        System.assertEquals(acc.Name, sObj.get('Name'));
+    }
+    
+    @isTest
+    public static void testCreateSObjectWithInsert() {
+        Account acc = new Account(Name = 'Test Account');
+        SObject sObj = TestFactory.createSObject(acc, true);
+        System.assertEquals(acc.Name, sObj.get('Name'));
+        System.assertNotEquals(null, acc.Id);
+    }
+    
+    @isTest
+    public static void testCreateSObjectWithDefaults() {
+        Account acc = new Account(Name = 'Test Account');
+        SObject sObj = TestFactory.createSObject(acc, 'AccountDefaults');
+        System.assertEquals('Default Description', sObj.get('Description'));
+    }
+    
+    @isTest
+    public static void testCreateSObjectWithDefaultsAndInsert() {
+        Account acc = new Account(Name = 'Test Account');
+        SObject sObj = TestFactory.createSObject(acc, 'AccountDefaults', true);
+        System.assertEquals('Default Description', sObj.get('Description'));
+        System.assertNotEquals(null, acc.Id);
+    }
+    
+    @isTest
+    public static void testCreateSObjectList() {
+        Account acc = new Account(Name = 'Test Account');
+        SObject[] sObjs = TestFactory.createSObjectList(acc, 5);
+        System.assertEquals(5, sObjs.size());
+        for (Integer i = 0; i < sObjs.size(); i++) {
+            System.assertEquals('Test Account ' + i, sObjs[i].get('Name'));
+        }
+    }
+    
+    @isTest
+    public static void testCreateSObjectListWithInsert() {
+        Account acc = new Account(Name = 'Test Account');
+        SObject[] sObjs = TestFactory.createSObjectList(acc, 5, true);
+        System.assertEquals(5, sObjs.size());
+        for (Integer i = 0; i < sObjs.size(); i++) {
+            System.assertEquals('Test Account ' + i, sObjs[i].get('Name'));
+        }
+        List<Account> insertedAccounts = [SELECT Name FROM Account];
+        System.assertEquals(5, insertedAccounts.size());
+    }
+    
+    @isTest
+    public static void testCreateSObjectListWithDefaults() {
+        Account acc = new Account(Name = 'Test Account');
+        SObject[] sObjs = TestFactory.createSObjectList(acc, 5, 'AccountDefaults');
+        System.assertEquals(5, sObjs.size());
+        for (Integer i = 0; i < sObjs.size(); i++) {
+            System.assertEquals('Test Account ' + i, sObjs[i].get('Name'));
+            System.assertEquals('Default Description', sObjs[i].get('Description'));
+        }
+    }
+    
+    @isTest
+    public static void testCreateSObjectListWithDefaultsAndInsert() {
+        Account acc = new Account(Name = 'Test Account');
+        SObject[] sObjs = TestFactory.createSObjectList(acc, 5, 'AccountDefaults', true);
+        System.assertEquals(5, sObjs.size());
+        for (Integer i = 0; i < sObjs.size(); i++) {
+            System.assertEquals('Test Account ' + i, sObjs[i].get('Name'));
+            System.assertEquals('Default Description', sObjs[i].get('Description'));
+        }
+        List<Account> insertedAccounts = [SELECT Name FROM Account];
+        System.assertEquals(5, insertedAccounts.size());
+    }
+    
+    @isTest
+    public static void testCreateTestUser() {
+        Id profileId = [SELECT Id FROM Profile LIMIT 1].Id;
+        User u = TestFactory.createTestUser(profileId, false);
+        System.assertEquals('last', u.LastName);
+        System.assertEquals('Testuser@test.example.com', u.Email);
+        System.assertEquals('Testuser@test.example.com' + Crypto.getRandomInteger(), u.Username);
+        System.assertEquals('TEST', u.CompanyName);
+        System.assertEquals('title', u.Title);
+        System.assertEquals('alias', u.Alias);
+        System.assertEquals('America/Los_Angeles', u.TimeZoneSidKey);
+        System.assertEquals('UTF-8', u.EmailEncodingKey);
+        System.assertEquals('en_US', u.LanguageLocaleKey);
+        System.assertEquals('en_US', u.LocaleSidKey);
+        System.assertEquals(null, u.Id);
+    }
+    
+    @isTest
+    public static void testCreateTestUserWithInsert() {
+        Id profileId = [SELECT Id FROM Profile LIMIT 1].Id;
+        User u = TestFactory.createTestUser(profileId, true);
+        System.assertEquals('last', u.LastName);
+        System.assertEquals('Testuser@test.example.com', u.Email);
+        System.assertEquals('Testuser@test.example.com' + Crypto.getRandomInteger(), u.Username);
+        System.assertEquals('TEST', u.CompanyName);
+        System.assertEquals('title', u.Title);
+        System.assertEquals('alias', u.Alias);
+        System.assertEquals('America/Los_Angeles', u.TimeZoneSidKey);
+        System.assertEquals('UTF-8', u.EmailEncodingKey);
+        System.assertEquals('en_US', u.LanguageLocaleKey);
+        System.assertEquals('en_US', u.LocaleSidKey);
+        System.assertNotEquals(null, u.Id);
+    }
+    
+    @isTest
+    public static void testCreateTestUserWithProfileName() {
+        User u = TestFactory.createTestUser(false, 'Standard User');
+        System.assertEquals('last', u.LastName);
+        System.assertEquals('Testuser@test.example.com', u.Email);
+        System.assertEquals('Testuser@test.example.com' + Crypto.getRandomInteger(), u.Username);
+        System.assertEquals('TEST', u.CompanyName);
+        System.assertEquals('title', u.Title);
+        System.assertEquals('alias', u.Alias);
+        System.assertEquals('America/Los_Angeles', u.TimeZoneSidKey);
+        System.assertEquals('UTF-8', u.EmailEncodingKey);
+        System.assertEquals('en_US', u.LanguageLocaleKey);
+        System.assertEquals('en_US', u.LocaleSidKey);
+        System.assertEquals(null, u.Id);
+    }
+    
+    @isTest
+    public static void testCreateTestUserWithProfileNameAndInsert() {
+        User u = TestFactory.createTestUser(true, 'Standard User');
+        System.assertEquals('last', u.LastName);
+        System.assertEquals('Testuser@test.example.com', u.Email);
+        System.assertEquals('Testuser@test.example.com' + Crypto.getRandomInteger(), u.Username);
+        System.assertEquals('TEST', u.CompanyName);
+        System.assertEquals('title', u.Title);
+        System.assertEquals('alias', u.Alias);
+        System.assertEquals('America/Los_Angeles', u.TimeZoneSidKey);
+        System.assertEquals('UTF-8', u.EmailEncodingKey);
+        System.assertEquals('en_US', u.LanguageLocaleKey);
+        System.assertEquals('en_US', u.LocaleSidKey);
+        System.assertNotEquals(null, u.Id);
+    }
+    
+    @isTest
+    public static void testCreateMinAccessUser() {
+        User u = TestFactory.createMinAccessUser(false);
+        System.assertEquals('last', u.LastName);
+        System.assertEquals('Testuser@test.example.com', u.Email);
+        System.assertEquals('Testuser@test.example.com' + Crypto.getRandomInteger(), u.Username);
+        System.assertEquals('TEST', u.CompanyName);
+        System.assertEquals('title', u.Title);
+        System.assertEquals('alias', u.Alias);
+        System.assertEquals('America/Los_Angeles', u.TimeZoneSidKey);
+        System.assertEquals('UTF-8', u.EmailEncodingKey);
+        System.assertEquals('en_US', u.LanguageLocaleKey);
+        System.assertEquals('en_US', u.LocaleSidKey);
+        System.assertEquals(null, u.Id);
+    }
+    
+    @isTest
+    public static void testCreateMinAccessUserWithInsert() {
+        User u = TestFactory.createMinAccessUser(true);
+        System.assertEquals('last', u.LastName);
+        System.assertEquals('Testuser@test.example.com', u.Email);
+        System.assertEquals('Testuser@test.example.com' + Crypto.getRandomInteger(), u.Username);
+        System.assertEquals('TEST', u.CompanyName);
+        System.assertEquals('title', u.Title);
+        System.assertEquals('alias', u.Alias);
+        System.assertEquals('America/Los_Angeles', u.TimeZoneSidKey);
+        System.assertEquals('UTF-8', u.EmailEncodingKey);
+        System.assertEquals('en_US', u.LanguageLocaleKey);
+        System.assertEquals('en_US', u.LocaleSidKey);
+        System.assertNotEquals(null, u.Id);
+    }
+    
+    @isTest
+    public static void testAssignPermSetToUser() {
+        User u = TestFactory.createTestUser(false, 'Standard User');
+        TestFactory.assignPermSetToUser(u, 'Custom Permission Set');
+        List<PermissionSetAssignment> assignments = [SELECT PermissionSetId FROM PermissionSetAssignment WHERE AssigneeId = :u.Id];
+        System.assertEquals(1, assignments.size());
+    }
+    
+    @isTest
+    public static void testInvalidateSObjectList() {
+        Account acc1 = new Account(Name = 'Account 1');
+        Account acc2 = new Account(Name = 'Account 2');
+        Account[] accs = new Account[]{acc1, acc2};
+        List<sObject> invalidated = TestFactory.invalidateSObjectList(accs);
+        for (sObject obj : invalidated) {
+            System.assertEquals('', obj.get('Name'));
+        }
+    }
+    
+    @isTest
+    public static void testCreateMarketingUser() {
+        User u = TestFactory.createMarketingUser(false);
+        System.assertEquals('last', u.LastName);
+        System.assertEquals('Testuser@test.example.com', u.Email);
+        System.assertEquals('Testuser@test.example.com' + Crypto.getRandomInteger(), u.Username);
+        System.assertEquals('TEST', u.CompanyName);
+        System.assertEquals('title', u.Title);
+        System.assertEquals('alias', u.Alias);
+        System.assertEquals('America/Los_Angeles', u.TimeZoneSidKey);
+        System.assertEquals('UTF-8', u.EmailEncodingKey);
+        System.assertEquals('en_US', u.LanguageLocaleKey);
+        System.assertEquals('en_US', u.LocaleSidKey);
+        System.assertEquals(null, u.Id);
+    }
+    
+    @isTest
+    public static void testCreateMarketingUserWithInsert() {
+        User u = TestFactory.createMarketingUser(true);
+        System.assertEquals('last', u.LastName);
+        System.assertEquals('Testuser@test.example.com', u.Email);
+        System.assertEquals('Testuser@test.example.com' + Crypto.getRandomInteger(), u.Username);
+        System.assertEquals('TEST', u.CompanyName);
+        System.assertEquals('title', u.Title);
+        System.assertEquals('alias', u.Alias);
+        System.assertEquals('America/Los_Angeles', u.TimeZoneSidKey);
+        System.assertEquals('UTF-8', u.EmailEncodingKey);
+        System.assertEquals('en_US', u.LanguageLocaleKey);
+        System.assertEquals('en_US', u.LocaleSidKey);
+        System.assertNotEquals(null, u.Id);
+    }
+}

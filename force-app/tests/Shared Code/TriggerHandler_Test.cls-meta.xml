@@ -1,5 +1,109 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-  <apiVersion>59.0</apiVersion>
-  <status>Active</status>
-</ApexClass>
+@isTest
+private class PSGAdvancedTestingRecipes {
+    @isTest
+    static void testNegativePSGTestsWithMetadata() {
+        // Create test data for Permission_Set_Group_Testing_Result__mdt records
+        List<Permission_Set_Group_Testing_Result__mdt> testData = new List<Permission_Set_Group_Testing_Result__mdt>();
+        
+        // Create test Permission_Set_Group_Testing_Result__mdt records
+        for (PermissionSetGroup psg : getPermissionSetGroups()) {
+            Permission_Set_Group_Testing_Result__mdt result = new Permission_Set_Group_Testing_Result__mdt();
+            result.Permission_Set_Group__c = psg.DeveloperName;
+            result.Expected_Exception_Match__c = 'Test Exception';
+            result.Failure_Log_Message__c = 'Test Failure';
+            testData.add(result);
+        }
+        
+        // Insert test Permission_Set_Group_Testing_Result__mdt records
+        insert testData;
+        
+        // Get the map of Permission_Set_Group__c to Permission_Set_Group_Testing_Result__mdt records
+        Map<String, Permission_Set_Group_Testing_Result__mdt> mapOfPSGResultMetadata = new Map<String, Permission_Set_Group_Testing_Result__mdt>();
+        for (Permission_Set_Group_Testing_Result__mdt result : testData) {
+            mapOfPSGResultMetadata.put(result.Permission_Set_Group__c, result);
+        }
+        
+        // Get all permission set groups
+        List<PermissionSetGroup> permSetGroups = getPermissionSetGroups();
+        
+        // Start test execution
+        Test.startTest();
+        
+        // Create a minimum access user profile
+        User testUser = TestFactory.createMinAccessUser(true);
+        
+        // Run as the test user
+        System.runAs(testUser) {
+            for (PermissionSetGroup psg : permSetGroups) {
+                // Assign current PSG to user
+                assignPermissionSetGroup(psg, testUser.Id);
+                
+                // Get the relevant expected results from metadata
+                Permission_Set_Group_Testing_Result__mdt expectedResult = mapOfPSGResultMetadata.get(psg.DeveloperName);
+                
+                Boolean didCatchTheRightException = false;
+                try {
+                    // Execute your code here
+                } catch (Exception exp) {
+                    if (exp.getMessage().containsIgnoreCase(expectedResult.Expected_Exception_Match__c)) {
+                        didCatchTheRightException = true;
+                    }
+                }
+                
+                // Assert the proper exception is thrown.
+                // System.assert(didCatchTheRightException, expectedResult.Failure_Log_Message__c);
+            }
+        }
+        
+        // Stop test execution
+        Test.stopTest();
+    }
+
+    private static Map<String, Permission_Set_Group_Testing_Result__mdt> getMapOfPSGResultMetadata(String testClassAndName) {
+        // Query for CustomMetadata Records about this test
+        List<Permission_Set_Group_Testing_Result__mdt> results = [
+            SELECT
+                Permission_Set_Group__c,
+                Expected_Exception_Match__c,
+                Failure_Log_Message__c
+            FROM Permission_Set_Group_Testing_Result__mdt
+            WHERE Test_Class_Method_Name__c LIKE :testClassAndName
+        ];
+
+        Map<String, Permission_Set_Group_Testing_Result__mdt> resultMap = new Map<String, Permission_Set_Group_Testing_Result__mdt>();
+        for (Permission_Set_Group_Testing_Result__mdt result : results) {
+            resultMap.put(result.Permission_Set_Group__c, result);
+        }
+        return resultMap;
+    }
+
+    private static void assignPermissionSetGroup(PermissionSetGroup permissionSetGroup, Id userId) {
+        // Delete any existing permission set assignments
+        delete [
+            SELECT id
+            FROM PermissionSetAssignment
+            WHERE
+                assigneeId = :userId
+                AND permissionSetId IN (
+                    SELECT Id
+                    FROM PermissionSet
+                    WHERE IsOwnedByProfile = FALSE
+                )
+        ];
+        
+        // Insert a new permission set assignment
+        insert new PermissionSetAssignment(
+            PermissionSetGroupId = permissionSetGroup.Id,
+            AssigneeId = userId
+        );
+        
+        // Calculate permission set group if status is not "Updated"
+        if (permissionSetGroup.Status != 'Updated') {
+            Test.calculatePermissionSetGroup(permissionSetGroup.Id);
+        }
+    }
+
+    private static List<PermissionSetGroup> getPermissionSetGroups() {
+        return [SELECT Id, DeveloperName, Status FROM PermissionSetGroup];
+    }
+}

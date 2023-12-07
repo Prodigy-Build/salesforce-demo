@@ -1,5 +1,43 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-  <apiVersion>59.0</apiVersion>
-  <status>Active</status>
-</ApexClass>
+@isTest
+private class ApexClassUtilities_Tests {
+    @isTest
+    static void testGetGroupFromClassBodyPositive() {
+        ApexClass klass = new ApexClass();
+        klass.Name = 'ApexClassUtilities';
+        klass.Body = 'public class ApexClassUtilities { }'; // Set the body of the class
+        
+        Test.startTest();
+        String groupName = ApexClassUtilities.getGroupFromClassBody(klass);
+        Test.stopTest();
+
+        System.Assert.areEqual('Shared Code', groupName);
+    }
+
+    @isTest
+    static void testGetRelatedClassesFromClassBodyPositive() {
+        ApexClass klass = new ApexClass();
+        klass.Name = 'ApexClassUtilities';
+        klass.Body = 'public class ApexClassUtilities { }'; // Set the body of the class
+        
+        Test.startTest();
+        List<String> relatedClasses = ApexClassUtilities.getRelatedClassesFromClassBody(klass);
+        Test.stopTest();
+
+        System.Assert.areEqual(2, relatedClasses.size());
+        System.Assert.areEqual('RecipeTreeViewController', relatedClasses[0]);
+        System.Assert.areEqual('FormattedRecipeDisplayController', relatedClasses[1]);
+    }
+
+    @isTest
+    static void testGetRelatedClassesFromClassBodyNegativeToComplex() {
+        ApexClass klass = new ApexClass();
+        klass.Name = 'DynamicSOQLRecipes_Tests';
+        klass.Body = 'public class DynamicSOQLRecipes_Tests { }'; // Set the body of the class
+        
+        Test.startTest();
+        List<String> relatedClasses = ApexClassUtilities.getRelatedClassesFromClassBody(klass);
+        Test.stopTest();
+
+        System.Assert.areEqual(0, relatedClasses.size(), 'Expected empty list');
+    }
+}

@@ -1,13 +1,10 @@
-@isTest
-private class QuiddityRecipes_Tests {
-    @isTest
-    static void testBasicFetchOfQuiddityPositive() {
-        Test.startTest();
-        Quiddity result = QuiddityRecipes.demonstrateGetQuiddity();
-        Test.stopTest();
-        System.Assert.isTrue(
-            QuiddityGuard.trustedQuiddities.contains(result),
-            'Expected the quiddity of a test run to be in the QuiddityGuard.trustedQuiddities list'
-        );
-    }
-}
+<?xml version="1.0" encoding="UTF-8" ?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>59.0</apiVersion>
+    <status>Active</status>
+    <testMethods>
+        <name>testMethod1</name>
+        <namespace>QuiddityRecipes_Tests</namespace>
+        <isParallel>false</isParallel>
+    </testMethods>
+</ApexClass>

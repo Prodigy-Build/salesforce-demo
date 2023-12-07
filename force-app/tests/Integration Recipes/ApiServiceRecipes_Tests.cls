@@ -6,7 +6,7 @@ private class ApiServiceRecipes_Tests {
         ApiServiceRecipes api = new ApiServiceRecipes();
         Test.stopTest();
 
-        System.Assert.areEqual(
+        System.assertEquals(
             'MockBin',
             api.namedCredentialName,
             'Expected constructor to create an instance that specifies the named credentialname'
@@ -29,27 +29,27 @@ private class ApiServiceRecipes_Tests {
         Test.stopTest();
 
         for (ApiServiceRecipesDataModel obj : results) {
-            System.Assert.isNotNull(
+            System.assertNotNull(
                 obj.exampleArray,
                 'exampleArray should not be null'
             );
-            System.Assert.isNotNull(
+            System.assertNotNull(
                 obj.exampleBoolean,
                 'exampleBoolean should not be null'
             );
-            System.Assert.isNotNull(
+            System.assertNotNull(
                 obj.exampleColor,
                 'exampleColor should not be null'
             );
-            System.Assert.isNotNull(
+            System.assertNotNull(
                 obj.exampleNumber,
                 'exampleNumber should not be null'
             );
-            System.Assert.isNotNull(
+            System.assertNotNull(
                 obj.exampleString,
                 'exampleString should not be null'
             );
-            System.Assert.isNotNull(
+            System.assertNotNull(
                 obj.exampleObject,
                 'exampleObject should not be null'
             );
@@ -79,7 +79,7 @@ private class ApiServiceRecipes_Tests {
                 didCatchTheRightException = true;
             }
         }
-        System.Assert.isTrue(
+        System.assertTrue(
             didCatchTheRightException,
             'Expected to have caught an Unexpected response code error'
         );
@@ -107,7 +107,7 @@ private class ApiServiceRecipes_Tests {
         }
         Test.stopTest();
 
-        System.Assert.isTrue(
+        System.assertTrue(
             didCatchTheRightException,
             'Expected to see our custom exception an underlying JSON exception'
         );
@@ -138,7 +138,7 @@ private class ApiServiceRecipes_Tests {
         }
         Test.stopTest();
 
-        System.Assert.isTrue(
+        System.assertTrue(
             didCatchTheRightException,
             'Expected to see our custom exception an underlying JSON exception'
         );

@@ -20,7 +20,7 @@ private inherited sharing class FilesRecipes_Tests {
             } else if (resource.Name.equalsIgnoreCase('helloworld')) {
                 fileName = resource.Name + '.docx';
             } else {
-                filename = resource.Name + '.m4a';
+                fileName = resource.Name + '.m4a';
             }
             FilesRecipes.createFileAttachedToRecord(
                 resource.Body,

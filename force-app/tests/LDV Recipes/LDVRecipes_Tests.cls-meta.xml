@@ -1,5 +1,33 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>51.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
+@isTest
+private class PlatformCacheBuilderRecipes_Tests {
+    static Cache.Partition defaultOrgPartition = PlatformCacheRecipes.getDefaultPartition(
+        PlatformCacheRecipes.PartitionType.ORG
+    );
+
+    @isTest
+    static void testPlatformCacheBuilderRecipesPositiveColdCache() {
+        Test.startTest();
+
+        // Create test accounts
+        List<Account> accts = new List<Account>();
+        for (Integer i = 0; i < 5; i++) {
+            accts.add(new Account());
+        }
+        insert accts;
+
+        // Retrieve accounts from cache
+        Account[] results = (Account[]) defaultOrgPartition.get(
+            PlatformCacheBuilderRecipes.class,
+            'Account'
+        );
+
+        Test.stopTest();
+
+        // Check if the retrieved accounts match the created accounts
+        System.Assert.areEqual(
+            accts.size(),
+            results.size(),
+            'Expected to pull the same accounts'
+        );
+    }
+}

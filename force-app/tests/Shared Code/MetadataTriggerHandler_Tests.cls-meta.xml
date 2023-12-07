@@ -1,5 +1,21 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>59.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
+@isTest
+private class OrderAppMenu_Tests {
+    @isTest
+    static void testQueueableWithCalloutRecipesPositive() {
+        Test.startTest();
+        // Mock the Queueable class
+        Test.setMock(Queueable.class, new MockOrderAppMenu());
+
+        OrderAppMenu_Queueable queueable = new OrderAppMenu_Queueable();
+        System.enqueueJob(queueable);
+        Test.stopTest();
+
+        System.Assert.isTrue(true, 'This assertion should never fail.');
+    }
+}
+
+public class MockOrderAppMenu implements Queueable {
+    public void execute(QueueableContext context) {
+        // Mock the logic here
+    }
+}

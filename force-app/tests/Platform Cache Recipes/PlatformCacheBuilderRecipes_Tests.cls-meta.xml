@@ -1,5 +1,300 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>59.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
+@isTest
+private class PlatformCacheRecipes_Tests {
+    @isTest
+    static void testStoreValueInSessionCachePositive() {
+        // Test Data
+        String cacheKey = 'Account';
+        String cacheValue = 'This is a test';
+
+        // Test
+        Test.startTest();
+        PlatformCacheRecipes.storeValueInSessionCache(
+            cacheKey,
+            cacheValue
+        );
+        Test.stopTest();
+
+        // Assertion
+        System.assert(
+            PlatformCacheRecipes.getDefaultPartition(
+                PlatformCacheRecipes.PartitionType.SESSION
+            ).getKeys().contains(cacheKey),
+            'Expected to see Account as a key'
+        );
+        System.assertEquals(
+            cacheValue,
+            PlatformCacheRecipes.getDefaultPartition(
+                PlatformCacheRecipes.PartitionType.SESSION
+            ).get(cacheKey),
+            'Expected Account key to hold \'this is a test\''
+        );
+    }
+
+    @isTest
+    static void testStoreValueInSessionCacheWithTTLPositive() {
+        // Test Data
+        String cacheKey = 'Account';
+        String cacheValue = 'This is a test';
+        Integer ttl = 4800;
+
+        // Test
+        Test.startTest();
+        PlatformCacheRecipes.storeValueInSessionCache(
+            cacheKey,
+            cacheValue,
+            ttl
+        );
+        Test.stopTest();
+
+        // Assertion
+        System.assert(
+            PlatformCacheRecipes.getDefaultPartition(
+                PlatformCacheRecipes.PartitionType.SESSION
+            ).getKeys().contains(cacheKey),
+            'Expected to see Account as a key'
+        );
+        System.assertEquals(
+            cacheValue,
+            PlatformCacheRecipes.getDefaultPartition(
+                PlatformCacheRecipes.PartitionType.SESSION
+            ).get(cacheKey),
+            'Expected Account key to hold \'this is a test\''
+        );
+    }
+
+    @isTest
+    static void testGetValueFromSessionCachePositive() {
+        // Test Data
+        String cacheKey = 'Account';
+        String cacheValue = 'This is a test';
+
+        // Test
+        PlatformCacheRecipes.storeValueInSessionCache(
+            cacheKey,
+            cacheValue
+        );
+        Test.startTest();
+        String results = PlatformCacheRecipes.getValueFromSessionCache(
+            cacheKey
+        );
+        Test.stopTest();
+
+        // Assertion
+        System.assertEquals(
+            cacheValue,
+            results,
+            'Expect retrieval of cache item to result in the cached string being returned'
+        );
+    }
+
+    @isTest
+    static void testGetValueFromSessionCacheNegativeNoValueForKey() {
+        // Test Data
+        String cacheKey = 'Account';
+
+        // Test
+        Test.startTest();
+        String results = PlatformCacheRecipes.getValueFromSessionCache(
+            cacheKey
+        );
+        Test.stopTest();
+
+        // Assertion
+        System.assertEquals(
+            'Cache Miss',
+            results,
+            'Expect retrieval of non-existing cache key to result in a \'Cache Miss\' result'
+        );
+    }
+
+    @isTest
+    static void testRemoveKeyFromSessionCachePositive() {
+        // Test Data
+        String cacheKey = 'Account';
+        String cacheValue = 'This is a test';
+
+        // Test
+        PlatformCacheRecipes.storeValueInSessionCache(
+            cacheKey,
+            cacheValue
+        );
+        Test.startTest();
+        PlatformCacheRecipes.removeKeyFromSessionCache(cacheKey);
+        Test.stopTest();
+
+        // Assertion
+        System.assert(
+            !PlatformCacheRecipes.getDefaultPartition(
+                PlatformCacheRecipes.PartitionType.SESSION
+            ).getKeys().contains(cacheKey),
+            'Expected the session cache keyset to not include Account'
+        );
+    }
+
+    @isTest
+    static void testRemoveKeyFromSessionCacheNegativeNoKey() {
+        // Test Data
+        String nonExistingKey = 'fakeKey';
+
+        // Test
+        Boolean didCatchProperException = false;
+        Test.startTest();
+        try {
+            PlatformCacheRecipes.removeKeyFromSessionCache(nonExistingKey);
+        } catch (PlatformCacheRecipes.CacheException ce) {
+            if (ce.getMessage().containsIgnoreCase('key not found')) {
+                didCatchProperException = true;
+            }
+        }
+        Test.stopTest();
+
+        // Assertion
+        System.assert(
+            didCatchProperException,
+            'Expected to have caught a CacheException'
+        );
+    }
+
+    // ORG partition
+    @isTest
+    static void testStoreValueInOrgCachePositive() {
+        // Test Data
+        String cacheKey = 'Account';
+        String cacheValue = 'This is a test';
+
+        // Test
+        Test.startTest();
+        PlatformCacheRecipes.storeValueInOrgCache(cacheKey, cacheValue);
+        Test.stopTest();
+
+        // Assertion
+        System.assert(
+            PlatformCacheRecipes.getDefaultPartition(
+                PlatformCacheRecipes.PartitionType.ORG
+            ).getKeys().contains(cacheKey),
+            'Expected to see Account as a key'
+        );
+        System.assertEquals(
+            cacheValue,
+            PlatformCacheRecipes.getDefaultPartition(
+                PlatformCacheRecipes.PartitionType.ORG
+            ).get(cacheKey),
+            'Expected Account key to hold \'this is a test\''
+        );
+    }
+
+    @isTest
+    static void testStoreValueInOrgCacheWithTTLPositive() {
+        // Test Data
+        String cacheKey = 'Account';
+        String cacheValue = 'This is a test';
+        Integer ttl = 4800;
+
+        // Test
+        Test.startTest();
+        PlatformCacheRecipes.storeValueInOrgCache(
+            cacheKey,
+            cacheValue,
+            ttl
+        );
+        Test.stopTest();
+
+        // Assertion
+        System.assert(
+            PlatformCacheRecipes.getDefaultPartition(
+                PlatformCacheRecipes.PartitionType.ORG
+            ).getKeys().contains(cacheKey),
+            'Expected to see Account as a key'
+        );
+        System.assertEquals(
+            cacheValue,
+            PlatformCacheRecipes.getDefaultPartition(
+                PlatformCacheRecipes.PartitionType.ORG
+            ).get(cacheKey),
+            'Expected Account key to hold \'this is a test\''
+        );
+    }
+
+    @isTest
+    static void testGetValueFromOrgCachePositive() {
+        // Test Data
+        String cacheKey = 'Contact';
+        String cacheValue = 'This is a test';
+
+        // Test
+        PlatformCacheRecipes.storeValueInOrgCache(cacheKey, cacheValue);
+        Test.startTest();
+        String results = PlatformCacheRecipes.getValueFromOrgCache(cacheKey);
+        Test.stopTest();
+
+        // Assertion
+        System.assertEquals(
+            cacheValue,
+            results,
+            'Expect retrieval of cache item to result in the cached string being returned'
+        );
+    }
+
+    @isTest
+    static void testGetValueFromOrgCacheNegativeNoValueForKey() {
+        // Test Data
+        String cacheKey = 'Account';
+
+        // Test
+        Test.startTest();
+        String results = PlatformCacheRecipes.getValueFromOrgCache(cacheKey);
+        Test.stopTest();
+
+        // Assertion
+        System.assertEquals(
+            'Cache Miss',
+            results,
+            'Expect retrieval of non-existing cache key to result in a \'Cache Miss\' result'
+        );
+    }
+
+    @isTest
+    static void testRemoveKeyFromOrgCachePositive() {
+        // Test Data
+        String cacheKey = 'Account';
+        String cacheValue = 'This is a test';
+
+        // Test
+        PlatformCacheRecipes.storeValueInOrgCache(cacheKey, cacheValue);
+        Test.startTest();
+        PlatformCacheRecipes.removeKeyFromOrgCache(cacheKey);
+        Test.stopTest();
+
+        // Assertion
+        System.assert(
+            !PlatformCacheRecipes.getDefaultPartition(
+                PlatformCacheRecipes.PartitionType.ORG
+            ).getKeys().contains(cacheKey),
+            'Expected the Org cache keyset to not include Account'
+        );
+    }
+
+    @isTest
+    static void testRemoveKeyFromOrgCacheNegativeNoKey() {
+        // Test Data
+        String nonExistingKey = 'fakeKey';
+
+        // Test
+        Boolean didCatchProperException = false;
+        Test.startTest();
+        try {
+            PlatformCacheRecipes.removeKeyFromOrgCache(nonExistingKey);
+        } catch (PlatformCacheRecipes.CacheException ce) {
+            if (ce.getMessage().containsIgnoreCase('key not found')) {
+                didCatchProperException = true;
+            }
+        }
+        Test.stopTest();
+
+        // Assertion
+        System.assert(
+            didCatchProperException,
+            'Expected to have caught a CacheException'
+        );
+    }
+}

@@ -1,5 +1,24 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>59.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
+@isTest
+private class QuiddityRecipes_Tests {
+    @isTest
+    static void testBasicFetchOfQuiddityPositive() {
+        Test.startTest();
+        Quiddity result = QuiddityRecipes.demonstrateGetQuiddity();
+        Test.stopTest();
+        System.Assert.isTrue(
+            QuiddityGuard.trustedQuiddities.contains(result),
+            'Expected the quiddity of a test run to be in the QuiddityGuard.trustedQuiddities list'
+        );
+    }
+    
+    @isTest
+    static void testBasicFetchOfQuiddityNegative() {
+        Test.startTest();
+        Quiddity result = QuiddityRecipes.demonstrateGetQuiddity();
+        Test.stopTest();
+        System.Assert.isFalse(
+            QuiddityGuard.trustedQuiddities.contains(result),
+            'Expected the quiddity of a test run to not be in the QuiddityGuard.trustedQuiddities list'
+        );
+    }
+}
